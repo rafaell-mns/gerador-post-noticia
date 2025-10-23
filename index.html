@@ -166,12 +166,41 @@
         /* Logo TJPI */
         .post-preview .logo {
             position: absolute;
-            bottom: 10px; /* alterar posição altura logo */
+            bottom: 10px;
+            /* alterar posição altura logo */
             left: 50%;
             transform: translateX(-50%);
             width: 100px;
             height: auto;
             z-index: 10;
+        }
+
+        /* Imagem extra usada apenas em STORIES (posicionada acima do bottom)
+           terá z-index menor que o logo para que o logo fique acima dela */
+        .post-preview .noticia-vazado {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 0;
+            /* distância do bottom em modo stories (ajustável) */
+            width: 100%;
+            height: auto;
+            z-index: 9;
+        }
+
+        /* CSS do cabeçalho */
+        .overlay-rect {
+            position: absolute;
+            width: 300px;
+            height: 25px;
+            border-radius: 15px;
+            background: rgb(255, 255, 255);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            /* abaixo do logo (10) e acima do conteúdo (container) */
+            pointer-events: none;
+            /* não atrapalha interações */
         }
     </style>
 </head>
@@ -257,22 +286,48 @@
             // Atualiza cor no preview se já houver fundo
             const bgDiv = document.querySelector('.bg-color');
             if (bgDiv) bgDiv.style.background = window.__bgColor;
+            // Atualiza cor do overlay caso exista
+            const overlay = document.querySelector('.overlay-rect');
+            if (overlay) overlay.style.background = darkenHex(window.__bgColor, 0.18);
         });
+
+        // Função utilitária: recebe um hex como '#rrggbb' e retorna uma versão
+        // mais escura usando fator (0-1) — 0.18 significa 18% mais escura
+        function darkenHex(hex, factor) {
+            // remove '#'
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+
+            const nr = Math.max(0, Math.floor(r * (1 - factor)));
+            const ng = Math.max(0, Math.floor(g * (1 - factor)));
+            const nb = Math.max(0, Math.floor(b * (1 - factor)));
+
+            return `rgb(${nr}, ${ng}, ${nb})`;
+        }
 
 
         // Download
-        downloadBtn.addEventListener('click', () => {
-            const previewDiv = preview.querySelector('div');
-            if (!previewDiv) {
+        // Download (mais robusto: valida presença de imagem e captura erros)
+        downloadBtn.addEventListener('click', async () => {
+            // Verifica se há uma imagem carregada no preview
+            const hasImg = preview.querySelector('img') || preview.querySelector('.bg-color');
+            if (!hasImg) {
                 alert('Adicione uma imagem antes de baixar.');
                 return;
             }
-            html2canvas(preview, { useCORS: true, scale: 2 }).then(canvas => {
+
+            try {
+                const canvas = await html2canvas(preview, { useCORS: true, scale: 2 });
                 const link = document.createElement('a');
                 link.download = downloadBtn.textContent.includes('FEED') ? 'post-feed.png' : 'post-stories.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-            });
+            } catch (err) {
+                console.error('Erro ao gerar imagem com html2canvas:', err);
+                alert('Erro ao gerar a imagem. Abra o console do navegador para mais detalhes.');
+            }
         });
 
         // Alterna layout
@@ -281,12 +336,14 @@
             btnFeed.classList.remove('active');
             preview.classList.remove('feed');
             downloadBtn.textContent = '⬇️ Baixar Imagem (STORIES)';
+            updatePreviewLayout();
         });
         btnFeed.addEventListener('click', () => {
             btnFeed.classList.add('active');
             btnStories.classList.remove('active');
             preview.classList.add('feed');
             downloadBtn.textContent = '⬇️ Baixar Imagem (FEED)';
+            updatePreviewLayout();
         });
 
         // Upload
@@ -332,21 +389,99 @@
                     bgDiv.style.flexGrow = '1';
                     bgDiv.style.background = window.__bgColor;
                     container.appendChild(bgDiv);
+
+                    // cabeçalho
+                    // Criamos o elemento e posicionamos após a imagem carregar para obter dimensões
+                    const rect = document.createElement('div');
+                    rect.className = 'overlay-rect';
+                    // aplica imediatamente a cor escurecida da seleção atual
+                    rect.style.background = darkenHex(window.__bgColor, 0.18);
+                    // Inserimos no preview (posição absoluta relativa ao preview)
+                    preview.appendChild(rect);
+
+                    // Calcula posição: queremos que o centro vertical do retângulo coincida
+                    // com o bottom da imagem. Como o img está dentro de 'container', usamos
+                    // as coordenadas relativas ao elemento preview.
+                    // Esperamos próximo frame para garantir pintura/layout
+                    requestAnimationFrame(() => {
+                        const imgRect = img.getBoundingClientRect();
+                        const previewRect = preview.getBoundingClientRect();
+
+                        // bottom da imagem relativo ao topo do preview
+                        const bottomY = imgRect.bottom - previewRect.top;
+
+                        // queremos que rect.top + (rect.height/2) === bottomY
+                        const topPos = bottomY - 12.5;
+
+                        rect.style.top = `${topPos}px`;
+                    });
                 };
 
                 container.appendChild(img);
                 preview.appendChild(container);
 
+                // Atualiza layout (insere/remova imagem extra e ajusta logo)
+                updatePreviewLayout();
+
                 // --- INSERÇÃO DO LOGO ---
+                // Removemos logo existente, se houver
+                const existingLogo = preview.querySelector('.logo');
+                if (existingLogo) existingLogo.remove();
+
                 const logoImg = document.createElement('img');
                 logoImg.src = 'imagens/logo_tjpi.png';
                 logoImg.alt = 'Logo TJ-PI';
                 logoImg.className = 'logo';
                 preview.appendChild(logoImg);
 
+                // Garantir que a atualização de layout ocorra após o logo existir
+                updatePreviewLayout();
+
                 uploadText.textContent = 'Imagem carregada! Clique ou arraste para alterar.';
             };
             reader.readAsDataURL(file);
+        }
+
+        // Atualiza elementos dependentes do tipo de layout (stories vs feed)
+        function updatePreviewLayout() {
+            // garante que exista o preview e o logo
+            if (!preview) return;
+
+            const isFeed = preview.classList.contains('feed');
+
+            // elemento imagem extra (noticia-vazado)
+            let extra = preview.querySelector('.noticia-vazado');
+
+            if (!isFeed) {
+                // STORIES: inserir imagem extra se não existir
+                if (!extra) {
+                    extra = document.createElement('img');
+                    extra.src = 'imagens/noticia-vazado.png';
+                    extra.alt = 'Notícia vazada';
+                    extra.className = 'noticia-vazado';
+                    // inserir antes do logo para garantir z-index correto
+                    const logo = preview.querySelector('.logo');
+                    if (logo) preview.insertBefore(extra, logo);
+                    else preview.appendChild(extra);
+                }
+
+                // Ajustar posição do logo para ficar um pouco acima da imagem extra
+                const logo = preview.querySelector('.logo');
+                if (logo) {
+                    // se há a imagem extra, colocamos o logo 10px acima dela
+                    logo.style.bottom = '70px';
+                }
+            } else {
+                // FEED: remover imagem extra se existir
+                if (extra) extra.remove();
+
+                // Restaurar posição do logo para padrão
+                const logo = preview.querySelector('.logo');
+                if (logo) {
+                    logo.style.bottom = '10px';
+                    logo.style.zIndex = '10';
+                }
+            }
         }
     </script>
 
