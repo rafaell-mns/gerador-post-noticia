@@ -124,6 +124,7 @@
             border: 3px solid transparent;
             cursor: pointer;
         }
+
         .color-circle.selected {
             border: 3px solid #00000033;
         }
@@ -137,6 +138,8 @@
 
         /* Preview do post: sempre responsivo, proporção 9/16 (STORIES) */
         .post-preview {
+            position: relative;
+            /* posição de referência para elementos absolutos dentro do preview */
             width: 100%;
             aspect-ratio: 9/16;
             max-width: 400px;
@@ -158,6 +161,17 @@
             .container {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Logo TJPI */
+        .post-preview .logo {
+            position: absolute;
+            bottom: 10px; /* alterar posição altura logo */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: auto;
+            z-index: 10;
         }
     </style>
 </head>
@@ -185,7 +199,8 @@
             <div class="form-group">
                 <label>Selecionar cor</label>
                 <div id="colorSelector" style="display: flex; gap: 16px; align-items: center;">
-                    <div class="color-circle selected" data-color="#48bb78" title="Verde" style="background:#48bb78;"></div>
+                    <div class="color-circle selected" data-color="#48bb78" title="Verde" style="background:#48bb78;">
+                    </div>
                     <div class="color-circle" data-color="#667eea" title="Azul" style="background:#667eea;"></div>
                     <div class="color-circle" data-color="#ffb703" title="Amarelo" style="background:#ffb703;"></div>
                     <div class="color-circle" data-color="#e63946" title="Vermelho" style="background:#e63946;"></div>
@@ -212,120 +227,128 @@
     </div>
 
     <script>
-    const btnStories = document.getElementById('btnStories');
-    const btnFeed = document.getElementById('btnFeed');
-    const preview = document.getElementById('preview');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const fileUpload = document.getElementById('fileUpload');
-    const imageInput = document.getElementById('imageInput');
-    const uploadText = document.getElementById('uploadText');
+        const btnStories = document.getElementById('btnStories');
+        const btnFeed = document.getElementById('btnFeed');
+        const preview = document.getElementById('preview');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const fileUpload = document.getElementById('fileUpload');
+        const imageInput = document.getElementById('imageInput');
+        const uploadText = document.getElementById('uploadText');
 
-    // --- Seletor de cor dinâmico ---
-    window.__bgColor = '#48bb78'; // padrão inicial
-    const colorSelector = document.getElementById('colorSelector');
+        // --- Seletor de cor dinâmico ---
+        window.__bgColor = '#48bb78'; // padrão inicial
+        const colorSelector = document.getElementById('colorSelector');
 
-    colorSelector.addEventListener('click', (e) => {
-        const circle = e.target.closest('.color-circle');
-        if (!circle) return;
+        colorSelector.addEventListener('click', (e) => {
+            const circle = e.target.closest('.color-circle');
+            if (!circle) return;
 
-        // Atualiza variável global
-        window.__bgColor = circle.dataset.color;
+            // Atualiza variável global
+            window.__bgColor = circle.dataset.color;
 
-        // Atualiza aparência dos círculos
-        document.querySelectorAll('.color-circle').forEach(c => {
-            c.classList.remove('selected');
-            c.style.border = '3px solid transparent';
+            // Atualiza aparência dos círculos
+            document.querySelectorAll('.color-circle').forEach(c => {
+                c.classList.remove('selected');
+                c.style.border = '3px solid transparent';
+            });
+            circle.classList.add('selected');
+            circle.style.border = '3px solid #00000033';
+
+            // Atualiza cor no preview se já houver fundo
+            const bgDiv = document.querySelector('.bg-color');
+            if (bgDiv) bgDiv.style.background = window.__bgColor;
         });
-        circle.classList.add('selected');
-        circle.style.border = '3px solid #00000033';
-
-        // Atualiza cor no preview se já houver fundo
-        const bgDiv = document.querySelector('.bg-color');
-        if (bgDiv) bgDiv.style.background = window.__bgColor;
-    });
 
 
-    // Download
-    downloadBtn.addEventListener('click', () => {
-        const previewDiv = preview.querySelector('div');
-        if (!previewDiv) {
-            alert('Adicione uma imagem antes de baixar.');
-            return;
-        }
-        html2canvas(preview, { useCORS: true, scale: 2 }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = downloadBtn.textContent.includes('FEED') ? 'post-feed.png' : 'post-stories.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+        // Download
+        downloadBtn.addEventListener('click', () => {
+            const previewDiv = preview.querySelector('div');
+            if (!previewDiv) {
+                alert('Adicione uma imagem antes de baixar.');
+                return;
+            }
+            html2canvas(preview, { useCORS: true, scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = downloadBtn.textContent.includes('FEED') ? 'post-feed.png' : 'post-stories.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
         });
-    });
 
-    // Alterna layout
-    btnStories.addEventListener('click', () => {
-        btnStories.classList.add('active');
-        btnFeed.classList.remove('active');
-        preview.classList.remove('feed');
-        downloadBtn.textContent = '⬇️ Baixar Imagem (STORIES)';
-    });
-    btnFeed.addEventListener('click', () => {
-        btnFeed.classList.add('active');
-        btnStories.classList.remove('active');
-        preview.classList.add('feed');
-        downloadBtn.textContent = '⬇️ Baixar Imagem (FEED)';
-    });
+        // Alterna layout
+        btnStories.addEventListener('click', () => {
+            btnStories.classList.add('active');
+            btnFeed.classList.remove('active');
+            preview.classList.remove('feed');
+            downloadBtn.textContent = '⬇️ Baixar Imagem (STORIES)';
+        });
+        btnFeed.addEventListener('click', () => {
+            btnFeed.classList.add('active');
+            btnStories.classList.remove('active');
+            preview.classList.add('feed');
+            downloadBtn.textContent = '⬇️ Baixar Imagem (FEED)';
+        });
 
-    // Upload
-    fileUpload.addEventListener('click', () => imageInput.click());
-    fileUpload.addEventListener('dragover', e => { e.preventDefault(); fileUpload.style.background = '#e6fffa'; });
-    fileUpload.addEventListener('dragleave', e => { e.preventDefault(); fileUpload.style.background = '#f7fafc'; });
-    fileUpload.addEventListener('drop', e => {
-        e.preventDefault();
-        fileUpload.style.background = '#f7fafc';
-        const file = e.dataTransfer.files[0];
-        if (file) handleImage(file);
-    });
-    imageInput.addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (file) handleImage(file);
-    });
+        // Upload
+        fileUpload.addEventListener('click', () => imageInput.click());
+        fileUpload.addEventListener('dragover', e => { e.preventDefault(); fileUpload.style.background = '#e6fffa'; });
+        fileUpload.addEventListener('dragleave', e => { e.preventDefault(); fileUpload.style.background = '#f7fafc'; });
+        fileUpload.addEventListener('drop', e => {
+            e.preventDefault();
+            fileUpload.style.background = '#f7fafc';
+            const file = e.dataTransfer.files[0];
+            if (file) handleImage(file);
+        });
+        imageInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) handleImage(file);
+        });
 
-    // Mostra imagem + fundo sólido
-    function handleImage(file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            preview.innerHTML = '';
-            preview.style.alignItems = 'flex-start';
+        // Mostra imagem + fundo sólido + logo
+        function handleImage(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.innerHTML = '';
+                preview.style.alignItems = 'flex-start';
 
-            const container = document.createElement('div');
-            container.style.width = '100%';
-            container.style.height = '100%';
-            container.style.display = 'flex';
-            container.style.flexDirection = 'column';
+                const container = document.createElement('div');
+                container.style.width = '100%';
+                container.style.height = '100%';
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
 
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.alt = 'Preview da imagem';
-            img.style.width = '100%';
-            img.style.objectFit = 'contain';
-            img.style.objectPosition = 'top';
-            img.style.flexShrink = '0';
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Preview da imagem';
+                img.style.width = '100%';
+                img.style.objectFit = 'contain';
+                img.style.objectPosition = 'top';
+                img.style.flexShrink = '0';
 
-            img.onload = function () {
-                const bgDiv = document.createElement('div');
-                bgDiv.className = 'bg-color';
-                bgDiv.style.width = '100%';
-                bgDiv.style.flexGrow = '1';
-                bgDiv.style.background = window.__bgColor;
-                container.appendChild(bgDiv);
+                img.onload = function () {
+                    const bgDiv = document.createElement('div');
+                    bgDiv.className = 'bg-color';
+                    bgDiv.style.width = '100%';
+                    bgDiv.style.flexGrow = '1';
+                    bgDiv.style.background = window.__bgColor;
+                    container.appendChild(bgDiv);
+                };
+
+                container.appendChild(img);
+                preview.appendChild(container);
+
+                // --- INSERÇÃO DO LOGO ---
+                const logoImg = document.createElement('img');
+                logoImg.src = 'imagens/logo_tjpi.png';
+                logoImg.alt = 'Logo TJ-PI';
+                logoImg.className = 'logo';
+                preview.appendChild(logoImg);
+
+                uploadText.textContent = 'Imagem carregada! Clique ou arraste para alterar.';
             };
-
-            container.appendChild(img);
-            preview.appendChild(container);
-            uploadText.textContent = 'Imagem carregada! Clique ou arraste para alterar.';
-        };
-        reader.readAsDataURL(file);
-    }
-</script>
+            reader.readAsDataURL(file);
+        }
+    </script>
 
 </body>
 
