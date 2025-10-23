@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <!-- Importa html2canvas para capturar o preview como imagem -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Posts - TJ-PI</title>
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Fundo gradiente do site e fonte base */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Grid principal: painel de configuração e painel de preview */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        /* Painel branco com sombra */
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Título principal */
+        h1 {
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        /* Espaçamento entre campos do formulário */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* Rótulo dos campos */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Área de upload de imagem */
+        .file-upload {
+            border: 3px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            background: #f7fafc;
+        }
+
+        /* Campo de texto da notícia */
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Botão principal */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Botões de alternância de layout */
+        .layout-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Estilo dos botões de layout */
+        .layout-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        /* Botão ativo de layout */
+        .layout-btn.active {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+
+        /* Preview do post: sempre responsivo, proporção 9/16 (STORIES) */
+        .post-preview {
+            width: 100%;
+            aspect-ratio: 9/16;
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Preview do post no layout FEED: proporção 4/5 */
+        .post-preview.feed {
+            aspect-ratio: 4/5;
+        }
+
+        /* Responsividade: empilha painéis em telas menores */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Painel de Configuração -->
+        <div class="panel">
+            <h1>📝 Configurar Notícia</h1>
+
+            <div class="form-group">
+                <label>Imagem da Notícia</label>
+                <div class="file-upload" id="fileUpload">
+                    <div id="uploadText">📸 Clique ou arraste uma imagem aqui</div>
+                    <input type="file" id="imageInput" accept="image/*" style="display:none">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Texto da Notícia</label>
+                <textarea placeholder="Digite o texto da notícia aqui..."></textarea>
+            </div>
+
+            <!-- Seletor de cor do degradê -->
+            <div class="form-group">
+                <label>Cor</label>
+                <div id="colorSelector" style="display: flex; gap: 16px; align-items: center;">
+                    <div class="color-circle selected" id="circleVerde" title="Verde"
+                        style="width:32px;height:32px;border-radius:50%;background:linear-gradient(180deg,#48bb78 0%,#38a169 100%);border:3px solid #38a169;cursor:pointer;">
+                    </div>
+                    <div class="color-circle" id="circleAzul" title="Azul"
+                        style="width:32px;height:32px;border-radius:50%;background:linear-gradient(180deg,#667eea 0%,#764ba2 100%);border:3px solid transparent;cursor:pointer;">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" id="downloadBtn">⬇️ Baixar Imagem (STORIES)</button>
+        </div>
+
+        <!-- Painel de Preview -->
+        <div class="panel">
+            <div class="layout-toggle">
+                <button class="layout-btn active" id="btnStories">STORIES</button>
+                <button class="layout-btn" id="btnFeed">FEED</button>
+            </div>
+
+            <div class="post-preview" id="preview"></div>
+            <!-- A imagem será inserida via JS dentro do preview -->
+        </div>
+    </div>
+
+    <script>
+        // --- JS principal do gerador de posts --- 
+        // Seleciona botões e preview
+        const btnStories = document.getElementById('btnStories'); // Botão STORIES
+        const btnFeed = document.getElementById('btnFeed');       // Botão FEED
+        const preview = document.getElementById('preview');       // Div do preview
+        const downloadBtn = document.getElementById('downloadBtn'); // Botão de download
+        const fileUpload = document.getElementById('fileUpload'); // Área de upload
+        const imageInput = document.getElementById('imageInput'); // Input file
+        const uploadText = document.getElementById('uploadText'); // Texto do upload
+
+        // --- Download do preview como imagem ---
+        downloadBtn.addEventListener('click', () => {
+            // Seleciona o container do preview (imagem + degradê)
+            const previewDiv = preview.querySelector('div');
+            if (!previewDiv) {
+                alert('Adicione uma imagem antes de baixar.');
+                return;
+            }
+            // Usa html2canvas para capturar o preview
+            html2canvas(preview, {
+                backgroundColor: null,
+                useCORS: true,
+                scale: 2 // melhor qualidade
+            }).then(canvas => {
+                // Cria um link para download
+                const link = document.createElement('a');
+                link.download = downloadBtn.textContent.includes('FEED') ? 'post-feed.png' : 'post-stories.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        });
+
+        // Alterna para layout STORIES
+        btnStories.addEventListener('click', () => {
+            btnStories.classList.add('active');
+            btnFeed.classList.remove('active');
+            preview.classList.remove('feed');
+            downloadBtn.textContent = '⬇️ Baixar Imagem (STORIES)';
+        });
+
+        // Alterna para layout FEED
+        btnFeed.addEventListener('click', () => {
+            btnFeed.classList.add('active');
+            btnStories.classList.remove('active');
+            preview.classList.add('feed');
+            downloadBtn.textContent = '⬇️ Baixar Imagem (FEED)';
+        });
+
+        // --- Upload de imagem ---
+        // Clique na área de upload abre o seletor de arquivos
+        fileUpload.addEventListener('click', () => {
+            imageInput.click();
+        });
+
+        // Arrastar e soltar imagem
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.style.background = '#e6fffa';
+        });
+        fileUpload.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileUpload.style.background = '#f7fafc';
+        });
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.style.background = '#f7fafc';
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleImage(file);
+            }
+        });
+
+        // Seleção de arquivo pelo input
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleImage(file);
+            }
+        });
+
+        // Função para exibir a imagem no preview encaixada no topo
+        function handleImage(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                // Limpa o preview
+                preview.innerHTML = '';
+                preview.style.alignItems = 'flex-start';
+
+                // Cria um container para imagem e fundo
+                const container = document.createElement('div');
+                container.style.width = '100%';
+                container.style.height = '100%';
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                container.style.height = '100%';
+
+                // Cria a imagem
+                const img = document.createElement('img');
+                img.alt = 'Preview da imagem';
+                img.style.width = '100%';
+                img.style.height = 'auto';
+                img.style.display = 'block';
+                img.style.objectFit = 'contain';
+                img.style.objectPosition = 'top';
+                img.style.flexShrink = '0';
+
+                // Quando a imagem carregar, calcula espaço restante e preenche com degradê
+                img.onload = function () {
+                    let gradDivOld = container.querySelector('.gradiente-verde');
+                    if (gradDivOld) gradDivOld.remove();
+
+                    // Cor do degradê
+                    const gradColor = window.__gradColor || 'verde';
+                    let gradBg = gradColor === 'azul'
+                        ? 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)'
+                        : 'linear-gradient(180deg, #48bb78 0%, #38a169 100%)';
+
+                    const gradDivNew = document.createElement('div');
+                    gradDivNew.className = 'gradiente-verde';
+                    gradDivNew.style.width = '100%';
+                    gradDivNew.style.flexGrow = '1';
+                    gradDivNew.style.height = '0';
+                    gradDivNew.style.background = gradBg;
+                    gradDivNew.style.marginTop = '0';
+                    gradDivNew.style.minHeight = '0';
+                    container.appendChild(gradDivNew);
+                };
+
+                img.src = e.target.result;
+                container.appendChild(img);
+                preview.appendChild(container);
+                uploadText.textContent = 'Imagem carregada!';
+            };
+            reader.readAsDataURL(file);
+            // --- Seletor de cor do degradê ---
+            window.__gradColor = 'verde'; // padrão
+            const circleVerde = document.getElementById('circleVerde');
+            const circleAzul = document.getElementById('circleAzul');
+            function setGradColor(color) {
+                window.__gradColor = color;
+                // Atualiza seleção visual
+                circleVerde.classList.toggle('selected', color === 'verde');
+                circleAzul.classList.toggle('selected', color === 'azul');
+                // Atualiza degradê do preview, se houver
+                const gradDiv = document.querySelector('.gradiente-verde');
+                if (gradDiv) {
+                    gradDiv.style.background = color === 'azul'
+                        ? 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)'
+                        : 'linear-gradient(180deg, #48bb78 0%, #38a169 100%)';
+                }
+            }
+            if (circleVerde && circleAzul) {
+                circleVerde.addEventListener('click', () => setGradColor('verde'));
+                circleAzul.addEventListener('click', () => setGradColor('azul'));
+            }
+        }
+    </script>
+</body>
+
+</html>
