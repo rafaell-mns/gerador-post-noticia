@@ -151,6 +151,31 @@
             justify-content: center;
         }
 
+        /* camada de cor sólida com textura por cima (baixo da imagem carregada) */
+        .post-preview .bg-color {
+            position: absolute;
+            inset: 0;
+            /* top:0; right:0; bottom:0; left:0; */
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: block;
+        }
+
+        /* A textura (imagem) aplicada via CSS usando multiply para mesclar com a cor de fundo */
+        .post-preview .bg-color::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('imagens/textura.png');
+            background-size: cover;
+            background-position: center;
+            pointer-events: none;
+        }
+
         /* Preview do post no layout FEED: proporção 4/5 */
         .post-preview.feed {
             aspect-ratio: 4/5;
@@ -166,13 +191,19 @@
         /* Logo TJPI */
         .post-preview .logo {
             position: absolute;
-            bottom: 10px;
+            bottom: 50px;
             /* alterar posição altura logo */
             left: 50%;
             transform: translateX(-50%);
             width: 100px;
             height: auto;
             z-index: 10;
+        }
+
+        /* garantir que imagens carregadas fiquem acima da textura */
+        .post-preview img {
+            position: relative;
+            z-index: 3;
         }
 
         /* Imagem extra usada apenas em STORIES (posicionada acima do bottom)
@@ -189,7 +220,7 @@
         }
 
         /* CSS do cabeçalho */
-        .overlay-rect {
+        .cabecalho {
             position: absolute;
             width: 300px;
             height: 25px;
@@ -198,9 +229,35 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 9999;
-            /* abaixo do logo (10) e acima do conteúdo (container) */
             pointer-events: none;
             /* não atrapalha interações */
+        }
+
+        /* CSS do titulo da noticia */
+        .titulo-noticia {
+            position: absolute;
+            width: 300px;
+            height: 150px;
+            border-radius: 15px;
+            background: rgb(255, 255, 255);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            pointer-events: none;
+            /* não atrapalha interações */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            box-sizing: border-box;
+            text-align: center;
+            color: #1f2937;
+            font-weight: 700;
+            font-size: 18px;
+            line-height: 1.15;
+            white-space: pre-wrap;
+            /* preserva quebras de linha */
+            overflow: hidden;
         }
     </style>
 </head>
@@ -212,7 +269,7 @@
             <h1>📝 Configurar Notícia</h1>
 
             <div class="form-group">
-                <label>Imagem da Notícia</label>
+                <label>1. Imagem da Notícia</label>
                 <div class="file-upload" id="fileUpload">
                     <div id="uploadText">📸 Clique ou arraste uma imagem aqui</div>
                     <input type="file" id="imageInput" accept="image/*" style="display:none">
@@ -220,13 +277,13 @@
             </div>
 
             <div class="form-group">
-                <label>Texto da Notícia</label>
-                <textarea placeholder="Digite o texto da notícia aqui..."></textarea>
+                <label>2. Texto da Notícia</label>
+                <textarea id="textoNoticia" placeholder="Digite o texto da notícia aqui..."></textarea>
             </div>
 
             <!-- Seletor de cor sólida -->
             <div class="form-group">
-                <label>Selecionar cor</label>
+                <label>3. Selecionar cor</label>
                 <div id="colorSelector" style="display: flex; gap: 16px; align-items: center;">
                     <div class="color-circle selected" data-color="#48bb78" title="Verde" style="background:#48bb78;">
                     </div>
@@ -236,9 +293,6 @@
                     <div class="color-circle" data-color="#6d597a" title="Roxo" style="background:#6d597a;"></div>
                 </div>
             </div>
-
-
-
 
             <button class="btn" id="downloadBtn">⬇️ Baixar Imagem (STORIES)</button>
         </div>
@@ -263,16 +317,54 @@
         const fileUpload = document.getElementById('fileUpload');
         const imageInput = document.getElementById('imageInput');
         const uploadText = document.getElementById('uploadText');
+        const textoNoticia = document.getElementById('textoNoticia');
+
+        // Atualiza o conteúdo do elemento .titulo-noticia com o texto do textarea
+        function syncTituloNoticia(text) {
+            let tituloEl = preview.querySelector('.titulo-noticia');
+            if (!tituloEl) return;
+            tituloEl.textContent = text || '';
+        }
+
+        if (textoNoticia) {
+            textoNoticia.addEventListener('input', (e) => {
+                syncTituloNoticia(e.target.value);
+            });
+        }
 
         // --- Seletor de cor dinâmico ---
         window.__bgColor = '#48bb78'; // padrão inicial
         const colorSelector = document.getElementById('colorSelector');
 
+        // aplica cor inicial ao preview
+        if (preview) preview.style.background = window.__bgColor;
+
+        // garante existência de uma div .bg-color que será a camada de cor+textura
+        function ensureBgDiv() {
+            let bgDiv = preview.querySelector('.bg-color');
+            if (!bgDiv) {
+                bgDiv = document.createElement('div');
+                bgDiv.className = 'bg-color';
+                // colocar no início do preview para ficar atrás de outros elementos
+                preview.insertBefore(bgDiv, preview.firstChild);
+            }
+            return bgDiv;
+        }
+
+        // aplica a cor atual na camada .bg-color
+        function applyBgToBgDiv() {
+            const bgDiv = ensureBgDiv();
+            // usamos a cor sólida como background-color; a textura está no ::after
+            bgDiv.style.background = window.__bgColor;
+        }
+
+        // cria a camada inicial
+        if (preview) applyBgToBgDiv();
+
         colorSelector.addEventListener('click', (e) => {
             const circle = e.target.closest('.color-circle');
             if (!circle) return;
 
-            // Atualiza variável global
             window.__bgColor = circle.dataset.color;
 
             // Atualiza aparência dos círculos
@@ -283,18 +375,17 @@
             circle.classList.add('selected');
             circle.style.border = '3px solid #00000033';
 
-            // Atualiza cor no preview se já houver fundo
-            const bgDiv = document.querySelector('.bg-color');
-            if (bgDiv) bgDiv.style.background = window.__bgColor;
-            // Atualiza cor do overlay caso exista
-            const overlay = document.querySelector('.overlay-rect');
-            if (overlay) overlay.style.background = darkenHex(window.__bgColor, 0.18);
+            // Atualiza cor no preview e na div interna se já houver
+            if (preview) applyBgToBgDiv();
+            if (preview) preview.style.background = 'transparent';
+
+            // Atualiza cor do cabeçalho
+            const overlay = document.querySelector('.cabecalho');
+            if (overlay) overlay.style.background = darkenHex(window.__bgColor, 0.18); // 0.18 indica que escurece a cor em 18%
         });
 
-        // Função utilitária: recebe um hex como '#rrggbb' e retorna uma versão
-        // mais escura usando fator (0-1) — 0.18 significa 18% mais escura
+        // função para escurecer cor do cabeçalho
         function darkenHex(hex, factor) {
-            // remove '#'
             const h = hex.replace('#', '');
             const r = parseInt(h.substring(0, 2), 16);
             const g = parseInt(h.substring(2, 4), 16);
@@ -309,7 +400,6 @@
 
 
         // Download
-        // Download (mais robusto: valida presença de imagem e captura erros)
         downloadBtn.addEventListener('click', async () => {
             // Verifica se há uma imagem carregada no preview
             const hasImg = preview.querySelector('img') || preview.querySelector('.bg-color');
@@ -365,7 +455,13 @@
         function handleImage(file) {
             const reader = new FileReader();
             reader.onload = function (e) {
-                preview.innerHTML = '';
+                // Mantemos a camada .bg-color e removemos o resto do conteúdo visual (exceto ela)
+                const bgDiv = ensureBgDiv();
+                // limpa demais filhos (mantendo bgDiv)
+                Array.from(preview.children).forEach(child => {
+                    if (child !== bgDiv) child.remove();
+                });
+
                 preview.style.alignItems = 'flex-start';
 
                 const container = document.createElement('div');
@@ -373,6 +469,7 @@
                 container.style.height = '100%';
                 container.style.display = 'flex';
                 container.style.flexDirection = 'column';
+                container.style.position = 'relative';
 
                 const img = document.createElement('img');
                 img.src = e.target.result;
@@ -383,41 +480,41 @@
                 img.style.flexShrink = '0';
 
                 img.onload = function () {
-                    const bgDiv = document.createElement('div');
-                    bgDiv.className = 'bg-color';
-                    bgDiv.style.width = '100%';
-                    bgDiv.style.flexGrow = '1';
-                    bgDiv.style.background = window.__bgColor;
-                    container.appendChild(bgDiv);
-
-                    // cabeçalho
-                    // Criamos o elemento e posicionamos após a imagem carregar para obter dimensões
+                    // cria o cabeçalho
                     const rect = document.createElement('div');
-                    rect.className = 'overlay-rect';
-                    // aplica imediatamente a cor escurecida da seleção atual
+                    rect.className = 'cabecalho';
                     rect.style.background = darkenHex(window.__bgColor, 0.18);
-                    // Inserimos no preview (posição absoluta relativa ao preview)
                     preview.appendChild(rect);
 
-                    // Calcula posição: queremos que o centro vertical do retângulo coincida
-                    // com o bottom da imagem. Como o img está dentro de 'container', usamos
-                    // as coordenadas relativas ao elemento preview.
-                    // Esperamos próximo frame para garantir pintura/layout
+                    // cria o container do título
+                    let tituloEl = preview.querySelector('.titulo-noticia');
+                    if (!tituloEl) {
+                        tituloEl = document.createElement('div');
+                        tituloEl.className = 'titulo-noticia';
+                        // conteúdo vazio por enquanto; pode ser preenchido via textarea no futuro
+                        tituloEl.textContent = '';
+                        preview.appendChild(tituloEl);
+                    }
+                    // sincroniza com o texto atual do textarea
+                    if (typeof syncTituloNoticia === 'function') syncTituloNoticia(textoNoticia ? textoNoticia.value : '');
+
+                    // posicionamento após pintura/layout
                     requestAnimationFrame(() => {
                         const imgRect = img.getBoundingClientRect();
                         const previewRect = preview.getBoundingClientRect();
 
-                        // bottom da imagem relativo ao topo do preview
                         const bottomY = imgRect.bottom - previewRect.top;
-
-                        // queremos que rect.top + (rect.height/2) === bottomY
                         const topPos = bottomY - 12.5;
 
                         rect.style.top = `${topPos}px`;
+
+                        const tituloTop = topPos + rect.offsetHeight + 10;
+                        tituloEl.style.top = `${tituloTop}px`;
                     });
                 };
 
                 container.appendChild(img);
+                // colocamos container acima da bgDiv
                 preview.appendChild(container);
 
                 // Atualiza layout (insere/remova imagem extra e ajusta logo)
@@ -452,11 +549,14 @@
             // elemento imagem extra (noticia-vazado)
             let extra = preview.querySelector('.noticia-vazado');
 
+            // garantir que a camada de fundo exista
+            const bgDiv = ensureBgDiv();
+
             if (!isFeed) {
                 // STORIES: inserir imagem extra se não existir
                 if (!extra) {
                     extra = document.createElement('img');
-                    extra.src = 'imagens/noticia-vazado.png';
+                    extra.src = 'imagens/noticia_vazado.png';
                     extra.alt = 'Notícia vazada';
                     extra.className = 'noticia-vazado';
                     // inserir antes do logo para garantir z-index correto
@@ -469,7 +569,8 @@
                 const logo = preview.querySelector('.logo');
                 if (logo) {
                     // se há a imagem extra, colocamos o logo 10px acima dela
-                    logo.style.bottom = '70px';
+                    logo.style.bottom = '110px';
+                    logo.style.zIndex = '10';
                 }
             } else {
                 // FEED: remover imagem extra se existir
@@ -478,7 +579,7 @@
                 // Restaurar posição do logo para padrão
                 const logo = preview.querySelector('.logo');
                 if (logo) {
-                    logo.style.bottom = '10px';
+                    logo.style.bottom = '30px';
                     logo.style.zIndex = '10';
                 }
             }
