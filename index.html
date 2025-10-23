@@ -116,6 +116,19 @@
             color: #2d3748;
         }
 
+        /* Estilo botão selecionar cor */
+        .color-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+        }
+        .color-circle.selected {
+            border: 3px solid #00000033;
+        }
+
+
         /* Botão ativo de layout */
         .layout-btn.active {
             background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
@@ -168,18 +181,20 @@
                 <textarea placeholder="Digite o texto da notícia aqui..."></textarea>
             </div>
 
-            <!-- Seletor de cor do degradê -->
+            <!-- Seletor de cor sólida -->
             <div class="form-group">
-                <label>Cor</label>
+                <label>Selecionar cor</label>
                 <div id="colorSelector" style="display: flex; gap: 16px; align-items: center;">
-                    <div class="color-circle selected" id="circleVerde" title="Verde"
-                        style="width:32px;height:32px;border-radius:50%;background:linear-gradient(180deg,#48bb78 0%,#38a169 100%);border:3px solid #38a169;cursor:pointer;">
-                    </div>
-                    <div class="color-circle" id="circleAzul" title="Azul"
-                        style="width:32px;height:32px;border-radius:50%;background:linear-gradient(180deg,#667eea 0%,#764ba2 100%);border:3px solid transparent;cursor:pointer;">
-                    </div>
+                    <div class="color-circle selected" data-color="#48bb78" title="Verde" style="background:#48bb78;"></div>
+                    <div class="color-circle" data-color="#667eea" title="Azul" style="background:#667eea;"></div>
+                    <div class="color-circle" data-color="#ffb703" title="Amarelo" style="background:#ffb703;"></div>
+                    <div class="color-circle" data-color="#e63946" title="Vermelho" style="background:#e63946;"></div>
+                    <div class="color-circle" data-color="#6d597a" title="Roxo" style="background:#6d597a;"></div>
                 </div>
             </div>
+
+
+
 
             <button class="btn" id="downloadBtn">⬇️ Baixar Imagem (STORIES)</button>
         </div>
@@ -197,163 +212,121 @@
     </div>
 
     <script>
-        // --- JS principal do gerador de posts --- 
-        // Seleciona botões e preview
-        const btnStories = document.getElementById('btnStories'); // Botão STORIES
-        const btnFeed = document.getElementById('btnFeed');       // Botão FEED
-        const preview = document.getElementById('preview');       // Div do preview
-        const downloadBtn = document.getElementById('downloadBtn'); // Botão de download
-        const fileUpload = document.getElementById('fileUpload'); // Área de upload
-        const imageInput = document.getElementById('imageInput'); // Input file
-        const uploadText = document.getElementById('uploadText'); // Texto do upload
+    const btnStories = document.getElementById('btnStories');
+    const btnFeed = document.getElementById('btnFeed');
+    const preview = document.getElementById('preview');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const fileUpload = document.getElementById('fileUpload');
+    const imageInput = document.getElementById('imageInput');
+    const uploadText = document.getElementById('uploadText');
 
-        // --- Download do preview como imagem ---
-        downloadBtn.addEventListener('click', () => {
-            // Seleciona o container do preview (imagem + degradê)
-            const previewDiv = preview.querySelector('div');
-            if (!previewDiv) {
-                alert('Adicione uma imagem antes de baixar.');
-                return;
-            }
-            // Usa html2canvas para capturar o preview
-            html2canvas(preview, {
-                backgroundColor: null,
-                useCORS: true,
-                scale: 2 // melhor qualidade
-            }).then(canvas => {
-                // Cria um link para download
-                const link = document.createElement('a');
-                link.download = downloadBtn.textContent.includes('FEED') ? 'post-feed.png' : 'post-stories.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
+    // --- Seletor de cor dinâmico ---
+    window.__bgColor = '#48bb78'; // padrão inicial
+    const colorSelector = document.getElementById('colorSelector');
+
+    colorSelector.addEventListener('click', (e) => {
+        const circle = e.target.closest('.color-circle');
+        if (!circle) return;
+
+        // Atualiza variável global
+        window.__bgColor = circle.dataset.color;
+
+        // Atualiza aparência dos círculos
+        document.querySelectorAll('.color-circle').forEach(c => {
+            c.classList.remove('selected');
+            c.style.border = '3px solid transparent';
         });
+        circle.classList.add('selected');
+        circle.style.border = '3px solid #00000033';
 
-        // Alterna para layout STORIES
-        btnStories.addEventListener('click', () => {
-            btnStories.classList.add('active');
-            btnFeed.classList.remove('active');
-            preview.classList.remove('feed');
-            downloadBtn.textContent = '⬇️ Baixar Imagem (STORIES)';
-        });
+        // Atualiza cor no preview se já houver fundo
+        const bgDiv = document.querySelector('.bg-color');
+        if (bgDiv) bgDiv.style.background = window.__bgColor;
+    });
 
-        // Alterna para layout FEED
-        btnFeed.addEventListener('click', () => {
-            btnFeed.classList.add('active');
-            btnStories.classList.remove('active');
-            preview.classList.add('feed');
-            downloadBtn.textContent = '⬇️ Baixar Imagem (FEED)';
-        });
 
-        // --- Upload de imagem ---
-        // Clique na área de upload abre o seletor de arquivos
-        fileUpload.addEventListener('click', () => {
-            imageInput.click();
-        });
-
-        // Arrastar e soltar imagem
-        fileUpload.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            fileUpload.style.background = '#e6fffa';
-        });
-        fileUpload.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            fileUpload.style.background = '#f7fafc';
-        });
-        fileUpload.addEventListener('drop', (e) => {
-            e.preventDefault();
-            fileUpload.style.background = '#f7fafc';
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                handleImage(file);
-            }
-        });
-
-        // Seleção de arquivo pelo input
-        imageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                handleImage(file);
-            }
-        });
-
-        // Função para exibir a imagem no preview encaixada no topo
-        function handleImage(file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                // Limpa o preview
-                preview.innerHTML = '';
-                preview.style.alignItems = 'flex-start';
-
-                // Cria um container para imagem e fundo
-                const container = document.createElement('div');
-                container.style.width = '100%';
-                container.style.height = '100%';
-                container.style.display = 'flex';
-                container.style.flexDirection = 'column';
-                container.style.height = '100%';
-
-                // Cria a imagem
-                const img = document.createElement('img');
-                img.alt = 'Preview da imagem';
-                img.style.width = '100%';
-                img.style.height = 'auto';
-                img.style.display = 'block';
-                img.style.objectFit = 'contain';
-                img.style.objectPosition = 'top';
-                img.style.flexShrink = '0';
-
-                // Quando a imagem carregar, calcula espaço restante e preenche com degradê
-                img.onload = function () {
-                    let gradDivOld = container.querySelector('.gradiente-verde');
-                    if (gradDivOld) gradDivOld.remove();
-
-                    // Cor do degradê
-                    const gradColor = window.__gradColor || 'verde';
-                    let gradBg = gradColor === 'azul'
-                        ? 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)'
-                        : 'linear-gradient(180deg, #48bb78 0%, #38a169 100%)';
-
-                    const gradDivNew = document.createElement('div');
-                    gradDivNew.className = 'gradiente-verde';
-                    gradDivNew.style.width = '100%';
-                    gradDivNew.style.flexGrow = '1';
-                    gradDivNew.style.height = '0';
-                    gradDivNew.style.background = gradBg;
-                    gradDivNew.style.marginTop = '0';
-                    gradDivNew.style.minHeight = '0';
-                    container.appendChild(gradDivNew);
-                };
-
-                img.src = e.target.result;
-                container.appendChild(img);
-                preview.appendChild(container);
-                uploadText.textContent = 'Imagem carregada!';
-            };
-            reader.readAsDataURL(file);
-            // --- Seletor de cor do degradê ---
-            window.__gradColor = 'verde'; // padrão
-            const circleVerde = document.getElementById('circleVerde');
-            const circleAzul = document.getElementById('circleAzul');
-            function setGradColor(color) {
-                window.__gradColor = color;
-                // Atualiza seleção visual
-                circleVerde.classList.toggle('selected', color === 'verde');
-                circleAzul.classList.toggle('selected', color === 'azul');
-                // Atualiza degradê do preview, se houver
-                const gradDiv = document.querySelector('.gradiente-verde');
-                if (gradDiv) {
-                    gradDiv.style.background = color === 'azul'
-                        ? 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)'
-                        : 'linear-gradient(180deg, #48bb78 0%, #38a169 100%)';
-                }
-            }
-            if (circleVerde && circleAzul) {
-                circleVerde.addEventListener('click', () => setGradColor('verde'));
-                circleAzul.addEventListener('click', () => setGradColor('azul'));
-            }
+    // Download
+    downloadBtn.addEventListener('click', () => {
+        const previewDiv = preview.querySelector('div');
+        if (!previewDiv) {
+            alert('Adicione uma imagem antes de baixar.');
+            return;
         }
-    </script>
+        html2canvas(preview, { useCORS: true, scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = downloadBtn.textContent.includes('FEED') ? 'post-feed.png' : 'post-stories.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    });
+
+    // Alterna layout
+    btnStories.addEventListener('click', () => {
+        btnStories.classList.add('active');
+        btnFeed.classList.remove('active');
+        preview.classList.remove('feed');
+        downloadBtn.textContent = '⬇️ Baixar Imagem (STORIES)';
+    });
+    btnFeed.addEventListener('click', () => {
+        btnFeed.classList.add('active');
+        btnStories.classList.remove('active');
+        preview.classList.add('feed');
+        downloadBtn.textContent = '⬇️ Baixar Imagem (FEED)';
+    });
+
+    // Upload
+    fileUpload.addEventListener('click', () => imageInput.click());
+    fileUpload.addEventListener('dragover', e => { e.preventDefault(); fileUpload.style.background = '#e6fffa'; });
+    fileUpload.addEventListener('dragleave', e => { e.preventDefault(); fileUpload.style.background = '#f7fafc'; });
+    fileUpload.addEventListener('drop', e => {
+        e.preventDefault();
+        fileUpload.style.background = '#f7fafc';
+        const file = e.dataTransfer.files[0];
+        if (file) handleImage(file);
+    });
+    imageInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) handleImage(file);
+    });
+
+    // Mostra imagem + fundo sólido
+    function handleImage(file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            preview.innerHTML = '';
+            preview.style.alignItems = 'flex-start';
+
+            const container = document.createElement('div');
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = 'Preview da imagem';
+            img.style.width = '100%';
+            img.style.objectFit = 'contain';
+            img.style.objectPosition = 'top';
+            img.style.flexShrink = '0';
+
+            img.onload = function () {
+                const bgDiv = document.createElement('div');
+                bgDiv.className = 'bg-color';
+                bgDiv.style.width = '100%';
+                bgDiv.style.flexGrow = '1';
+                bgDiv.style.background = window.__bgColor;
+                container.appendChild(bgDiv);
+            };
+
+            container.appendChild(img);
+            preview.appendChild(container);
+            uploadText.textContent = 'Imagem carregada! Clique ou arraste para alterar.';
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+
 </body>
 
 </html>
