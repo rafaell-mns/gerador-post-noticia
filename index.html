@@ -34,11 +34,13 @@
             <div class="form-group">
                 <label>3. Selecionar cor</label>
                 <div id="colorSelector" style="display: flex; gap: 16px; align-items: center;">
-                    <div class="color-circle selected" data-color="#48bb78" title="Verde" style="background:#48bb78;"></div>
+                    <div class="color-circle selected" data-color="#48bb78" title="Verde" style="background:#48bb78;">
+                    </div>
 
                     <div class="color-circle" data-color="#0BB3D9" title="Azul claro" style="background:#0BB3D9;"></div>
 
-                    <div class="color-circle" data-color="#063573" title="Azul escuro" style="background:#063573;"></div>
+                    <div class="color-circle" data-color="#063573" title="Azul escuro" style="background:#063573;">
+                    </div>
 
                     <div class="color-circle" data-color="#a60d1a" title="Vermelho" style="background:#a60d1a;"></div>
 
@@ -57,10 +59,17 @@
 
         <!-- Painel de Preview -->
         <div class="panel">
-            <div class="layout-toggle">
-                <button class="layout-btn active" id="btnStories">STORIES</button>
-                <button class="layout-btn" id="btnFeed">FEED</button>
-                <button class="btn" id="downloadBtn"><img src="imagens/download.png" alt="download" class="btn-icon">Download</button>
+            <div class="layout-controls">
+                <div class="toggle-switch" id="layoutToggle">
+                    <div class="toggle-slider"></div>
+                    <div class="toggle-labels">
+                        <span class="toggle-label">STORIES</span>
+                        <span class="toggle-label">FEED</span>
+                    </div>
+                </div>
+
+                <button class="btn" id="downloadBtn"><img src="imagens/download.png" alt="download"
+                        class="btn-icon">Download</button>
             </div>
 
             <div class="post-preview" id="preview"></div>
@@ -69,8 +78,7 @@
     </div>
 
     <script>
-        const btnStories = document.getElementById('btnStories');
-        const btnFeed = document.getElementById('btnFeed');
+        const layoutToggle = document.getElementById('layoutToggle');
         const preview = document.getElementById('preview');
         const downloadBtn = document.getElementById('downloadBtn');
         const fileUpload = document.getElementById('fileUpload');
@@ -278,23 +286,26 @@
             }
         });
 
-        // Alterna layout
-        btnStories.addEventListener('click', () => {
-            btnStories.classList.add('active');
-            btnFeed.classList.remove('active');
-            preview.classList.remove('feed');
-            downloadBtn.innerHTML = '<img src="imagens/download.png" alt="download" class="btn-icon">Download';
-            updatePreviewLayout();
-            posicionarTitulo(); // Reposiciona elementos
-        });
-        btnFeed.addEventListener('click', () => {
-            btnFeed.classList.add('active');
-            btnStories.classList.remove('active');
-            preview.classList.add('feed');
-            downloadBtn.innerHTML = '<img src="imagens/download.png" alt="download" class="btn-icon">Download';
-            updatePreviewLayout();
-            posicionarTitulo(); // Reposiciona elementos
-        });
+        // Alterna layout via novo toggle-switch
+        if (layoutToggle) {
+            layoutToggle.addEventListener('click', () => {
+                const isFeed = layoutToggle.classList.contains('feed');
+
+                if (isFeed) {
+                    // Estava em FEED, voltar para STORIES
+                    layoutToggle.classList.remove('feed');
+                    preview.classList.remove('feed');
+                } else {
+                    // Estava em STORIES, mudar para FEED
+                    layoutToggle.classList.add('feed');
+                    preview.classList.add('feed');
+                }
+
+                // Atualizar preview e reposicionar elementos
+                updatePreviewLayout();
+                posicionarTitulo();
+            });
+        }
 
         // Upload
         fileUpload.addEventListener('click', () => imageInput.click());

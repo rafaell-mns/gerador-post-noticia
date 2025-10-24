@@ -125,23 +125,13 @@ textarea {
     display: block;
 }
 
-/* Botões de alternância de layout */
-.layout-toggle {
+/* Container dos controles (toggle + botão de download) */
+.layout-controls {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    align-items: center;
+    gap: 20px;
     margin-bottom: 20px;
-}
-
-/* Estilo dos botões de layout */
-.layout-btn {
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: rgba(255, 255, 255, 0.9);
-    cursor: pointer;
-    font-weight: 700;
-    color: #2d3748;
 }
 
 /* Estilo botão selecionar cor */
@@ -158,11 +148,77 @@ textarea {
 }
 
 
-/* Botão ativo de layout */
-.layout-btn.active {
-    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-    color: white;
+
+/* ======================
+   Toggle Switch Styles
+   ====================== */
+.toggle-switch {
+    width: 240px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 25px;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
 }
+
+.toggle-slider {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    width: 116px;
+    height: 42px;
+    border-radius: 21px;
+    background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 0;
+    /* ficar atrás dos textos */
+    transition: transform 0.3s ease;
+}
+
+.toggle-labels {
+    position: relative;
+    z-index: 1;
+    /* acima do slider */
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    pointer-events: none;
+    /* textos não clicáveis individualmente */
+}
+
+.toggle-label {
+    font-weight: 700;
+    font-size: 16px;
+    color: #4a5568;
+    /* texto não selecionado */
+    user-select: none;
+}
+
+/* Estado FEED: move o slider para a direita */
+.toggle-switch.feed .toggle-slider {
+    transform: translateX(116px);
+}
+
+/* Quando NÃO está em feed (STORIES ativo) */
+.toggle-switch:not(.feed) .toggle-label:first-child {
+    color: #ffffff;
+}
+
+/* Quando está em feed (FEED ativo) */
+.toggle-switch.feed .toggle-label:last-child {
+    color: #ffffff;
+}
+
+/* Desativar pointer events para labels (apenas o container responde ao clique) */
+.toggle-labels .toggle-label {
+    pointer-events: none;
+}
+
 
 /* Preview do post: sempre responsivo, proporção 9/16 (STORIES) */
 .post-preview {
