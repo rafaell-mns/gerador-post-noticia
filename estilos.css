@@ -25,11 +25,13 @@ body {
 
 /* Grid principal: painel de configuração e painel de preview */
 .container {
-    max-width: 1400px;
-    margin: 0 auto;
+    width: 100%;
+    height: 100vh;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
+    align-items: start;
+    padding: 20px;
 }
 
 /* Painel branco com sombra */
