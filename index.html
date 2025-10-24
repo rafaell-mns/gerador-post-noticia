@@ -212,7 +212,7 @@
             }
 
             try {
-                const canvas = await html2canvas(preview, { useCORS: true, scale: 2 });
+                const canvas = await html2canvas(preview, { useCORS: true, scale: 2, height: preview.offsetHeight - 1});
                 const link = document.createElement('a');
                 link.download = downloadBtn.textContent.includes('FEED') ? 'post-feed.png' : 'post-stories.png';
                 link.href = canvas.toDataURL('image/png');
