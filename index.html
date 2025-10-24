@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 
 <head>
-    <!-- Importa html2canvas para capturar o preview como imagem -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +12,6 @@
 
 <body>
     <div class="container">
-        <!-- Painel de Configuração -->
         <div class="panel">
             <h1>📝 Configurar Notícia</h1>
 
@@ -30,7 +28,6 @@
                 <textarea id="textoNoticia" placeholder="Digite o texto da notícia aqui..."></textarea>
             </div>
 
-            <!-- Seletor de cor sólida -->
             <div class="form-group">
                 <label>3. Selecionar cor</label>
                 <div id="colorSelector" style="display: flex; gap: 16px; align-items: center;">
@@ -53,11 +50,15 @@
                     <div class="color-circle" data-color="#4A5568" title="Cinza aço" style="background:#4A5568;"></div>
 
                     <div class="color-circle" data-color="#5A3E36" title="Café" style="background:#5A3E36;"></div>
+
+                    <div class="color-picker-container" title="Conta-Gota / Seletor de Cores">
+                        <img src="imagens/color-wheel.png" alt="Ícone Seletor" class="color-picker-icon">
+                        <input type="color" id="colorPicker" value="#48bb78">
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Painel de Preview -->
         <div class="panel">
             <div class="layout-controls">
                 <div class="toggle-switch" id="layoutToggle">
@@ -73,8 +74,7 @@
             </div>
 
             <div class="post-preview" id="preview"></div>
-            <!-- A imagem será inserida via JS dentro do preview -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -209,32 +209,60 @@
             });
         }
 
-        // lógica selecionar cor
+        // 1. Lógica para os círculos de cores predefinidas
         colorSelector.addEventListener('click', (e) => {
             const circle = e.target.closest('.color-circle');
-            if (!circle) return;
+            if (!circle) return; // Não é um círculo
 
-            window.__bgColor = circle.dataset.color;
+            const newColor = circle.getAttribute('data-color');
+            window.__bgColor = newColor;
 
-            // Atualiza aparência dos círculos
+            // A. Sincroniza o input[type="color"] com a cor do círculo
+            const colorPicker = document.getElementById('colorPicker');
+            if (colorPicker) {
+                colorPicker.value = newColor;
+            }
+
+            // B. Gerencia a classe 'selected' nos círculos
             document.querySelectorAll('.color-circle').forEach(c => {
                 c.classList.remove('selected');
-                c.style.border = '3px solid transparent';
             });
             circle.classList.add('selected');
-            circle.style.border = '3px solid #00000033';
 
-            // Atualiza cor no preview e na div interna
+            // C. Aplica a cor ao preview e aos elementos dependentes
             if (preview) applyBgToBgDiv();
-            if (preview) preview.style.background = 'transparent';
 
-            // Atualiza cor do cabeçalho
             const overlay = document.querySelector('.cabecalho');
             if (overlay) overlay.style.background = darkenHex(window.__bgColor, fatorCorCabecalho);
 
-            // também atualiza a cor do título (se existir)
             applyTituloColor(fatorCorTitulo);
         });
+
+        // 2. Lógica para o Input Color Picker (Conta-gotas) - Registrado uma única vez
+        const colorPicker = document.getElementById('colorPicker');
+        if (colorPicker) {
+            // Usa 'input' para atualização em tempo real
+            colorPicker.addEventListener('input', (e) => {
+                const newColor = e.target.value;
+                window.__bgColor = newColor;
+
+                // Remove a seleção de todos os círculos (a cor veio do conta-gotas)
+                document.querySelectorAll('.color-circle').forEach(c => {
+                    c.classList.remove('selected');
+                    c.style.border = '3px solid transparent';
+                });
+
+                // Atualiza cor no preview e na div interna
+                if (preview) applyBgToBgDiv();
+
+                // Atualiza cor do cabeçalho
+                const overlay = document.querySelector('.cabecalho');
+                if (overlay) overlay.style.background = darkenHex(window.__bgColor, fatorCorCabecalho);
+
+                // também atualiza a cor do título (se existir)
+                applyTituloColor(fatorCorTitulo);
+            });
+        }
 
 
         function normalizeTextForFilename(text) {
@@ -420,17 +448,19 @@
 
             // STORIES: inserir imagem extra se não existir
             if (!isFeed) {
-                extra = document.createElement('img');
-                extra.src = 'imagens/noticia_vazado.png';
-                extra.className = 'noticia-vazado';
-                preview.appendChild(extra);
+                if (!extra) {
+                    extra = document.createElement('img');
+                    extra.src = 'imagens/noticia_vazado.png';
+                    extra.className = 'noticia-vazado';
+                    preview.appendChild(extra);
+                }
 
                 const logo = preview.querySelector('.logo');
-                logo.style.bottom = '110px';
+                if (logo) logo.style.bottom = '110px';
             } else {
-                extra.remove(); // remover notícia vazado
+                if (extra) extra.remove(); // remover notícia vazado
                 const logo = preview.querySelector('.logo');
-                logo.style.bottom = '30px'; // ajustar altura logo
+                if (logo) logo.style.bottom = '30px'; // ajustar altura logo
             }
         }
 
