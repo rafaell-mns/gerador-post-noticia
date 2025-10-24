@@ -85,19 +85,20 @@ textarea {
     min-height: 120px;
 }
 
-/* Botão principal */
+/* Botão de download*/
 .btn {
-    width: 100%;
+    width: 140px;
     padding: 12px 16px;
     /* um padding levemente menor para melhor centralização */
     background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
     color: white;
     border: none;
     border-radius: 12px;
+    margin-top: 0px;
+    display: inline-flex;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 10px;
     display: inline-flex;
     /* garante alinhamento vertical confiável */
     align-items: center;
@@ -109,8 +110,8 @@ textarea {
 
 /* Ícone no botão de download */
 .btn-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     display: block;
     /* remove espaço inline que causa gaps */
     object-fit: contain;

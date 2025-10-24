@@ -53,9 +53,6 @@
                     <div class="color-circle" data-color="#5A3E36" title="Café" style="background:#5A3E36;"></div>
                 </div>
             </div>
-
-            <button class="btn" id="downloadBtn"><img src="imagens/download.png" alt="download" class="btn-icon">Baixar
-                imagem STORIES</button>
         </div>
 
         <!-- Painel de Preview -->
@@ -63,6 +60,7 @@
             <div class="layout-toggle">
                 <button class="layout-btn active" id="btnStories">STORIES</button>
                 <button class="layout-btn" id="btnFeed">FEED</button>
+                <button class="btn" id="downloadBtn"><img src="imagens/download.png" alt="download" class="btn-icon">Download</button>
             </div>
 
             <div class="post-preview" id="preview"></div>
@@ -285,7 +283,7 @@
             btnStories.classList.add('active');
             btnFeed.classList.remove('active');
             preview.classList.remove('feed');
-            downloadBtn.innerHTML = '<img src="imagens/download.png" alt="download" class="btn-icon">Baixar imagem STORIES';
+            downloadBtn.innerHTML = '<img src="imagens/download.png" alt="download" class="btn-icon">Download';
             updatePreviewLayout();
             posicionarTitulo(); // Reposiciona elementos
         });
@@ -293,7 +291,7 @@
             btnFeed.classList.add('active');
             btnStories.classList.remove('active');
             preview.classList.add('feed');
-            downloadBtn.innerHTML = '<img src="imagens/download.png" alt="download" class="btn-icon">Baixar imagem FEED';
+            downloadBtn.innerHTML = '<img src="imagens/download.png" alt="download" class="btn-icon">Download';
             updatePreviewLayout();
             posicionarTitulo(); // Reposiciona elementos
         });
