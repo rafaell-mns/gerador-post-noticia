@@ -289,8 +289,20 @@
                     if (!rect) {
                         rect = document.createElement('div');
                         rect.className = 'cabecalho';
+                        rect.textContent = 'notícia';
                         preview.appendChild(rect);
                     }
+
+                    // 2. Os círculos
+                    const circlesDiv = document.createElement('div');
+                    circlesDiv.className = 'cabecalho-circles';
+                    circlesDiv.innerHTML = `
+                        <div class="cabecalho-circle" style="background:#ff9700;"></div>
+                        <div class="cabecalho-circle" style="background:#ffffff;"></div>
+                        <div class="cabecalho-circle" style="background:#042c6c;"></div>
+                    `;
+
+                    rect.appendChild(circlesDiv);
                     rect.style.background = darkenHex(window.__bgColor, 0.18);
 
                     // Criar o título
