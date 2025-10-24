@@ -38,12 +38,13 @@
                     </div>
                     <div class="color-circle" data-color="#667eea" title="Azul" style="background:#667eea;"></div>
                     <div class="color-circle" data-color="#ffb703" title="Amarelo" style="background:#ffb703;"></div>
-                    <div class="color-circle" data-color="#e63946" title="Vermelho" style="background:#e63946;"></div>
+                    <div class="color-circle" data-color="#a60d1a" title="Vermelho" style="background:#a60d1a;"></div>
                     <div class="color-circle" data-color="#6d597a" title="Roxo" style="background:#6d597a;"></div>
                 </div>
             </div>
 
-            <button class="btn" id="downloadBtn">⬇️ Baixar Imagem (STORIES)</button>
+            <button class="btn" id="downloadBtn"><img src="imagens/download.png" alt="download" class="btn-icon">Baixar
+                imagem STORIES</button>
         </div>
 
         <!-- Painel de Preview -->
@@ -98,7 +99,7 @@
             return `rgb(${nr}, ${ng}, ${nb})`;
         }
 
-        const fatorCorTitulo = 0.6
+        const fatorCorTitulo = 0.52
         // aplica cor escurecida ao título da notícia (se existir)
         function applyTituloColor(factor = fatorCorTitulo) {
             if (!preview) return;
@@ -271,7 +272,7 @@
             btnStories.classList.add('active');
             btnFeed.classList.remove('active');
             preview.classList.remove('feed');
-            downloadBtn.textContent = '⬇️ Baixar Imagem (STORIES)';
+            downloadBtn.innerHTML = '<img src="imagens/download.png" alt="download" class="btn-icon">Baixar imagem STORIES';
             updatePreviewLayout();
             posicionarTitulo(); // Reposiciona elementos
         });
@@ -279,7 +280,7 @@
             btnFeed.classList.add('active');
             btnStories.classList.remove('active');
             preview.classList.add('feed');
-            downloadBtn.textContent = '⬇️ Baixar Imagem (FEED)';
+            downloadBtn.innerHTML = '<img src="imagens/download.png" alt="download" class="btn-icon">Baixar imagem FEED';
             updatePreviewLayout();
             posicionarTitulo(); // Reposiciona elementos
         });

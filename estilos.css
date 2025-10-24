@@ -86,7 +86,8 @@ textarea {
 /* Botão principal */
 .btn {
     width: 100%;
-    padding: 15px;
+    padding: 12px 16px;
+    /* um padding levemente menor para melhor centralização */
     background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
     color: white;
     border: none;
@@ -95,6 +96,30 @@ textarea {
     font-weight: 600;
     cursor: pointer;
     margin-top: 10px;
+    display: inline-flex;
+    /* garante alinhamento vertical confiável */
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+    /* evita offset por line-height */
+}
+
+/* Ícone no botão de download */
+.btn-icon {
+    width: 24px;
+    height: 24px;
+    display: block;
+    /* remove espaço inline que causa gaps */
+    object-fit: contain;
+    /* mantém proporção sem overflow */
+    margin: 0;
+    /* remove margens indesejadas do próprio elemento */
+    padding: 0;
+}
+
+.btn img {
+    display: block;
 }
 
 /* Botões de alternância de layout */
