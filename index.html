@@ -7,259 +7,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Posts - TJ-PI</title>
-    <style>
-        /* Reset básico */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* Fundo gradiente do site e fonte base */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        /* Grid principal: painel de configuração e painel de preview */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        /* Painel branco com sombra */
-        .panel {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Título principal */
-        h1 {
-            color: #2d3748;
-            margin-bottom: 30px;
-            font-size: 24px;
-            text-align: center;
-        }
-
-        /* Espaçamento entre campos do formulário */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        /* Rótulo dos campos */
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #4a5568;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        /* Área de upload de imagem */
-        .file-upload {
-            border: 3px dashed #cbd5e0;
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            background: #f7fafc;
-        }
-
-        /* Campo de texto da notícia */
-        textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        /* Botão principal */
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        /* Botões de alternância de layout */
-        .layout-toggle {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        /* Estilo dos botões de layout */
-        .layout-btn {
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            background: rgba(255, 255, 255, 0.9);
-            cursor: pointer;
-            font-weight: 700;
-            color: #2d3748;
-        }
-
-        /* Estilo botão selecionar cor */
-        .color-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            cursor: pointer;
-        }
-
-        .color-circle.selected {
-            border: 3px solid #00000033;
-        }
-
-
-        /* Botão ativo de layout */
-        .layout-btn.active {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            color: white;
-        }
-
-        /* Preview do post: sempre responsivo, proporção 9/16 (STORIES) */
-        .post-preview {
-            position: relative;
-            /* posição de referência para elementos absolutos dentro do preview */
-            width: 100%;
-            aspect-ratio: 9/16;
-            max-width: 400px;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* camada de cor sólida com textura por cima (baixo da imagem carregada) */
-        .post-preview .bg-color {
-            position: absolute;
-            inset: 0;
-            /* top:0; right:0; bottom:0; left:0; */
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            display: block;
-        }
-
-        /* A textura (imagem) aplicada via CSS usando multiply para mesclar com a cor de fundo */
-        .post-preview .bg-color::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: url('imagens/textura.png');
-            background-size: cover;
-            background-position: center;
-            pointer-events: none;
-        }
-
-        /* Preview do post no layout FEED: proporção 4/5 */
-        .post-preview.feed {
-            aspect-ratio: 4/5;
-        }
-
-        /* Responsividade: empilha painéis em telas menores */
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Logo TJPI */
-        .post-preview .logo {
-            position: absolute;
-            bottom: 50px;
-            /* alterar posição altura logo */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: auto;
-            z-index: 10;
-        }
-
-        /* garantir que imagens carregadas fiquem acima da textura */
-        .post-preview img {
-            position: relative;
-            z-index: 3;
-        }
-
-        /* Imagem extra usada apenas em STORIES (posicionada acima do bottom)
-           terá z-index menor que o logo para que o logo fique acima dela */
-        .post-preview .noticia-vazado {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 0;
-            /* distância do bottom em modo stories (ajustável) */
-            width: 100%;
-            height: auto;
-            z-index: 9;
-        }
-
-        /* CSS do cabeçalho */
-        .cabecalho {
-            position: absolute;
-            width: 300px;
-            height: 25px;
-            border-radius: 15px;
-            background: rgb(255, 255, 255);
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            pointer-events: none;
-            /* não atrapalha interações */
-        }
-
-        /* CSS do titulo da noticia */
-        .titulo-noticia {
-            position: absolute;
-            width: 300px;
-            height: 150px;
-            border-radius: 15px;
-            background: rgb(255, 255, 255);
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            pointer-events: none;
-            /* não atrapalha interações */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            box-sizing: border-box;
-            text-align: center;
-            color: #1f2937;
-            font-weight: 700;
-            font-size: 18px;
-            line-height: 1.15;
-            white-space: pre-wrap;
-            /* preserva quebras de linha */
-            overflow: hidden;
-        }
-    </style>
+    <link rel="stylesheet" href="estilos.css">
+    <link rel="icon" type="image/png" href="imagens/icon.png">
 </head>
 
 <body>
@@ -332,14 +81,24 @@
             });
         }
 
-        // --- Seletor de cor dinâmico ---
-        window.__bgColor = '#48bb78'; // padrão inicial
+        window.__bgColor = '#48bb78'; // cor inicial
         const colorSelector = document.getElementById('colorSelector');
 
-        // aplica cor inicial ao preview
-        if (preview) preview.style.background = window.__bgColor;
+        // função para escurecer cor do cabeçalho
+        function darkenHex(hex, factor) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
 
-        // garante existência de uma div .bg-color que será a camada de cor+textura
+            const nr = Math.max(0, Math.floor(r * (1 - factor)));
+            const ng = Math.max(0, Math.floor(g * (1 - factor)));
+            const nb = Math.max(0, Math.floor(b * (1 - factor)));
+
+            return `rgb(${nr}, ${ng}, ${nb})`;
+        }
+
+        // cor sólida + textura
         function ensureBgDiv() {
             let bgDiv = preview.querySelector('.bg-color');
             if (!bgDiv) {
@@ -358,9 +117,67 @@
             bgDiv.style.background = window.__bgColor;
         }
 
-        // cria a camada inicial
-        if (preview) applyBgToBgDiv();
+        function inserirLogo() {
+            let logoImg = preview.querySelector('.logo');
+            if (!logoImg) {
+                logoImg = document.createElement('img');
+                logoImg.src = 'imagens/logo_tjpi.png';
+                logoImg.alt = 'Logo TJ-PI';
+                logoImg.className = 'logo';
+                preview.appendChild(logoImg);
+            }
+        }
 
+        // Função de inicialização
+        function initializePreview() {
+            if (!preview) return;
+
+            // 1. Aplica cor inicial
+            applyBgToBgDiv();
+            preview.style.background = 'transparent';
+
+            // 2. Inserir logo
+            inserirLogo();
+
+            // 3. Atualiza layout (stories por padrão) para incluir noticia-vazado
+            updatePreviewLayout();
+        }
+
+        // Posiciona o cabeçalho e título com base no container de imagem/fundo
+        function posicionarTitulo() {
+            const rect = preview.querySelector('.cabecalho');
+            const tituloEl = preview.querySelector('.titulo-noticia');
+            const imgContainer = preview.querySelector('.img-container');
+
+            if (!rect || !tituloEl) return;
+
+            let referenceElement = imgContainer;
+
+            if (!referenceElement) {
+                const fixedTop = 25; // Distância fixa do topo (ajustável)
+                rect.style.top = `${fixedTop}px`;
+                tituloEl.style.top = `${fixedTop + rect.offsetHeight + 10}px`;
+                return;
+            }
+
+            // Se houver imagem carregada, a lógica de posicionamento é diferente
+            requestAnimationFrame(() => {
+                const imgEl = referenceElement.querySelector('img');
+
+                const imgRect = imgEl.getBoundingClientRect();
+                const previewRect = preview.getBoundingClientRect();
+
+                // posição cabeçalho
+                const bottomY = imgRect.bottom - previewRect.top;
+                const topPos = bottomY - 12.5; // 12.5px para centralizar na "linha" do recorte da imagem (pode variar)
+
+                rect.style.top = `${topPos}px`;
+                tituloEl.style.top = `${topPos + rect.offsetHeight + 10}px`;
+
+            });
+        }
+
+        // lógica selecionar cor
         colorSelector.addEventListener('click', (e) => {
             const circle = e.target.closest('.color-circle');
             if (!circle) return;
@@ -375,36 +192,22 @@
             circle.classList.add('selected');
             circle.style.border = '3px solid #00000033';
 
-            // Atualiza cor no preview e na div interna se já houver
+            // Atualiza cor no preview e na div interna
             if (preview) applyBgToBgDiv();
             if (preview) preview.style.background = 'transparent';
 
             // Atualiza cor do cabeçalho
             const overlay = document.querySelector('.cabecalho');
-            if (overlay) overlay.style.background = darkenHex(window.__bgColor, 0.18); // 0.18 indica que escurece a cor em 18%
+            if (overlay) overlay.style.background = darkenHex(window.__bgColor, 0.18);
         });
-
-        // função para escurecer cor do cabeçalho
-        function darkenHex(hex, factor) {
-            const h = hex.replace('#', '');
-            const r = parseInt(h.substring(0, 2), 16);
-            const g = parseInt(h.substring(2, 4), 16);
-            const b = parseInt(h.substring(4, 6), 16);
-
-            const nr = Math.max(0, Math.floor(r * (1 - factor)));
-            const ng = Math.max(0, Math.floor(g * (1 - factor)));
-            const nb = Math.max(0, Math.floor(b * (1 - factor)));
-
-            return `rgb(${nr}, ${ng}, ${nb})`;
-        }
 
 
         // Download
         downloadBtn.addEventListener('click', async () => {
-            // Verifica se há uma imagem carregada no preview
-            const hasImg = preview.querySelector('img') || preview.querySelector('.bg-color');
-            if (!hasImg) {
-                alert('Adicione uma imagem antes de baixar.');
+            // Verifica se há uma imagem carregada (container da imagem) ou pelo menos o fundo (bg-color)
+            const hasContent = preview.querySelector('.img-container') || preview.querySelector('.bg-color');
+            if (!hasContent) {
+                alert('O preview está vazio. Adicione uma imagem ou recarregue a página.');
                 return;
             }
 
@@ -427,6 +230,7 @@
             preview.classList.remove('feed');
             downloadBtn.textContent = '⬇️ Baixar Imagem (STORIES)';
             updatePreviewLayout();
+            posicionarTitulo(); // Reposiciona elementos
         });
         btnFeed.addEventListener('click', () => {
             btnFeed.classList.add('active');
@@ -434,6 +238,7 @@
             preview.classList.add('feed');
             downloadBtn.textContent = '⬇️ Baixar Imagem (FEED)';
             updatePreviewLayout();
+            posicionarTitulo(); // Reposiciona elementos
         });
 
         // Upload
@@ -455,16 +260,15 @@
         function handleImage(file) {
             const reader = new FileReader();
             reader.onload = function (e) {
-                // Mantemos a camada .bg-color e removemos o resto do conteúdo visual (exceto ela)
-                const bgDiv = ensureBgDiv();
-                // limpa demais filhos (mantendo bgDiv)
-                Array.from(preview.children).forEach(child => {
-                    if (child !== bgDiv) child.remove();
-                });
+                // Remove container de imagem existente, se houver
+                const existingContainer = preview.querySelector('.img-container');
+                if (existingContainer) existingContainer.remove();
 
                 preview.style.alignItems = 'flex-start';
 
+                // Container para a imagem da notícia
                 const container = document.createElement('div');
+                container.className = 'img-container';
                 container.style.width = '100%';
                 container.style.height = '100%';
                 container.style.display = 'flex';
@@ -480,59 +284,40 @@
                 img.style.flexShrink = '0';
 
                 img.onload = function () {
-                    // cria o cabeçalho
-                    const rect = document.createElement('div');
-                    rect.className = 'cabecalho';
+                    // Criar o cabeçalho
+                    let rect = preview.querySelector('.cabecalho');
+                    if (!rect) {
+                        rect = document.createElement('div');
+                        rect.className = 'cabecalho';
+                        preview.appendChild(rect);
+                    }
                     rect.style.background = darkenHex(window.__bgColor, 0.18);
-                    preview.appendChild(rect);
 
-                    // cria o container do título
+                    // Criar o título
                     let tituloEl = preview.querySelector('.titulo-noticia');
                     if (!tituloEl) {
                         tituloEl = document.createElement('div');
                         tituloEl.className = 'titulo-noticia';
-                        // conteúdo vazio por enquanto; pode ser preenchido via textarea no futuro
                         tituloEl.textContent = '';
                         preview.appendChild(tituloEl);
                     }
+
                     // sincroniza com o texto atual do textarea
-                    if (typeof syncTituloNoticia === 'function') syncTituloNoticia(textoNoticia ? textoNoticia.value : '');
+                    syncTituloNoticia(textoNoticia ? textoNoticia.value : '');
 
-                    // posicionamento após pintura/layout
-                    requestAnimationFrame(() => {
-                        const imgRect = img.getBoundingClientRect();
-                        const previewRect = preview.getBoundingClientRect();
-
-                        const bottomY = imgRect.bottom - previewRect.top;
-                        const topPos = bottomY - 12.5;
-
-                        rect.style.top = `${topPos}px`;
-
-                        const tituloTop = topPos + rect.offsetHeight + 10;
-                        tituloEl.style.top = `${tituloTop}px`;
-                    });
+                    // Posiciona o cabeçalho e título agora que existem e a imagem está pronta
+                    posicionarTitulo();
                 };
 
                 container.appendChild(img);
-                // colocamos container acima da bgDiv
-                preview.appendChild(container);
-
-                // Atualiza layout (insere/remova imagem extra e ajusta logo)
-                updatePreviewLayout();
-
-                // --- INSERÇÃO DO LOGO ---
-                // Removemos logo existente, se houver
-                const existingLogo = preview.querySelector('.logo');
-                if (existingLogo) existingLogo.remove();
-
-                const logoImg = document.createElement('img');
-                logoImg.src = 'imagens/logo_tjpi.png';
-                logoImg.alt = 'Logo TJ-PI';
-                logoImg.className = 'logo';
-                preview.appendChild(logoImg);
-
-                // Garantir que a atualização de layout ocorra após o logo existir
-                updatePreviewLayout();
+                // Inserir o container antes dos elementos estruturais (logo, cabecalho, titulo-noticia)
+                // mas depois da bg-color, o z-index no css já deve resolver a ordem visual
+                const bgDiv = preview.querySelector('.bg-color');
+                if (bgDiv) {
+                    preview.insertBefore(container, bgDiv.nextSibling);
+                } else {
+                    preview.appendChild(container);
+                }
 
                 uploadText.textContent = 'Imagem carregada! Clique ou arraste para alterar.';
             };
@@ -549,41 +334,24 @@
             // elemento imagem extra (noticia-vazado)
             let extra = preview.querySelector('.noticia-vazado');
 
-            // garantir que a camada de fundo exista
-            const bgDiv = ensureBgDiv();
-
+            // STORIES: inserir imagem extra se não existir
             if (!isFeed) {
-                // STORIES: inserir imagem extra se não existir
-                if (!extra) {
-                    extra = document.createElement('img');
-                    extra.src = 'imagens/noticia_vazado.png';
-                    extra.alt = 'Notícia vazada';
-                    extra.className = 'noticia-vazado';
-                    // inserir antes do logo para garantir z-index correto
-                    const logo = preview.querySelector('.logo');
-                    if (logo) preview.insertBefore(extra, logo);
-                    else preview.appendChild(extra);
-                }
+                extra = document.createElement('img');
+                extra.src = 'imagens/noticia_vazado.png';
+                extra.className = 'noticia-vazado';
+                preview.appendChild(extra);
 
-                // Ajustar posição do logo para ficar um pouco acima da imagem extra
                 const logo = preview.querySelector('.logo');
-                if (logo) {
-                    // se há a imagem extra, colocamos o logo 10px acima dela
-                    logo.style.bottom = '110px';
-                    logo.style.zIndex = '10';
-                }
+                logo.style.bottom = '110px';
             } else {
-                // FEED: remover imagem extra se existir
-                if (extra) extra.remove();
-
-                // Restaurar posição do logo para padrão
+                extra.remove(); // remover notícia vazado
                 const logo = preview.querySelector('.logo');
-                if (logo) {
-                    logo.style.bottom = '30px';
-                    logo.style.zIndex = '10';
-                }
+                logo.style.bottom = '30px'; // ajustar altura logo
             }
         }
+
+        // --- CHAMADA DE INICIALIZAÇÃO NO FINAL DO SCRIPT ---
+        initializePreview();
     </script>
 
 </body>
