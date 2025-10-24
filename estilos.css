@@ -187,6 +187,17 @@ textarea {
     border: none;
 }
 
+/* Garante que o botão nativo seja removido ou reduzido a zero */
+#colorPicker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+#colorPicker::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%; /* Se ainda houver uma caixa visível, tenta torná-la um círculo */
+    width: 100%; /* Garante que preencha o pai (color-picker-container) */
+    height: 100%;
+}
+
 
 /* ======================
    Toggle Switch Styles
