@@ -34,12 +34,23 @@
             <div class="form-group">
                 <label>3. Selecionar cor</label>
                 <div id="colorSelector" style="display: flex; gap: 16px; align-items: center;">
-                    <div class="color-circle selected" data-color="#48bb78" title="Verde" style="background:#48bb78;">
-                    </div>
-                    <div class="color-circle" data-color="#667eea" title="Azul" style="background:#667eea;"></div>
-                    <div class="color-circle" data-color="#ffb703" title="Amarelo" style="background:#ffb703;"></div>
+                    <div class="color-circle selected" data-color="#48bb78" title="Verde" style="background:#48bb78;"></div>
+
+                    <div class="color-circle" data-color="#0BB3D9" title="Azul claro" style="background:#0BB3D9;"></div>
+
+                    <div class="color-circle" data-color="#063573" title="Azul escuro" style="background:#063573;"></div>
+
                     <div class="color-circle" data-color="#a60d1a" title="Vermelho" style="background:#a60d1a;"></div>
+
+                    <div class="color-circle" data-color="#D4A017" title="Amarelo" style="background:#D4A017;"></div>
+
+                    <div class="color-circle" data-color="#805AD5" title="Roxo médio" style="background:#805AD5;"></div>
+
                     <div class="color-circle" data-color="#6d597a" title="Roxo" style="background:#6d597a;"></div>
+
+                    <div class="color-circle" data-color="#4A5568" title="Cinza aço" style="background:#4A5568;"></div>
+
+                    <div class="color-circle" data-color="#5A3E36" title="Café" style="background:#5A3E36;"></div>
                 </div>
             </div>
 
@@ -99,7 +110,9 @@
             return `rgb(${nr}, ${ng}, ${nb})`;
         }
 
+        const fatorCorCabecalho = 0.12
         const fatorCorTitulo = 0.52
+
         // aplica cor escurecida ao título da notícia (se existir)
         function applyTituloColor(factor = fatorCorTitulo) {
             if (!preview) return;
@@ -211,7 +224,7 @@
 
             // Atualiza cor do cabeçalho
             const overlay = document.querySelector('.cabecalho');
-            if (overlay) overlay.style.background = darkenHex(window.__bgColor, 0.18);
+            if (overlay) overlay.style.background = darkenHex(window.__bgColor, fatorCorCabecalho);
 
             // também atualiza a cor do título (se existir)
             applyTituloColor(fatorCorTitulo);
@@ -347,7 +360,7 @@
                     `;
 
                     rect.appendChild(circlesDiv);
-                    rect.style.background = darkenHex(window.__bgColor, 0.18);
+                    rect.style.background = darkenHex(window.__bgColor, fatorCorCabecalho);
 
                     // Criar o título
                     let tituloEl = preview.querySelector('.titulo-noticia');
