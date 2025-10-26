@@ -26,7 +26,15 @@
 /* Fundo gradiente do site e fonte base */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* fundo agora é uma imagem que preenche toda a viewport */
+    background-image: url('imagens/tribunal.jpeg');
+    background-size: cover;
+    /* cobre toda a área da viewport mantendo proporção */
+    background-position: center center;
+    /* centraliza a imagem */
+    background-repeat: no-repeat;
+    /* opcional: fixa o background durante scroll (remova se não quiser esse comportamento) */
+    background-attachment: fixed;
     min-height: 100vh;
     padding: 20px;
 }
@@ -44,10 +52,14 @@ body {
 
 /* Painel branco com sombra */
 .panel {
-    background: white;
+    /* leve transparência para deixar o fundo (imagem) aparecer por baixo */
+    background: rgba(255, 255, 255, 0.82);
     border-radius: 20px;
     padding: 30px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    /* melhora legibilidade quando o fundo aparece por baixo */
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
 }
 
 /* Título principal */
