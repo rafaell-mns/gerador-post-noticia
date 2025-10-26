@@ -27,7 +27,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     /* fundo agora é uma imagem que preenche toda a viewport */
-    background-image: url('imagens/tribunal.jpeg');
+    background-image: url('imagens/tribunal.png');
     background-size: cover;
     /* cobre toda a área da viewport mantendo proporção */
     background-position: center center;
