@@ -1,3 +1,11 @@
+/* Variáveis de tema dinâmico (serão atualizadas via JS) */
+:root {
+    --accent: #48bb78;
+    /* cor principal (padrão) */
+    --accent-dark: #38a169;
+    /* cor secundária/escura (padrão) */
+}
+
 /* Reset básico */
 * {
     margin: 0;
@@ -90,7 +98,8 @@ textarea {
     width: 140px;
     padding: 12px 16px;
     /* um padding levemente menor para melhor centralização */
-    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    /* background dinâmico com variáveis CSS atualizáveis por JS */
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
     color: white;
     border: none;
     border-radius: 12px;
@@ -164,7 +173,8 @@ textarea {
     height: 100%;
     object-fit: contain;
     display: block;
-    z-index: 1; /* Fica atrás do input[type=color] transparente */
+    z-index: 1;
+    /* Fica atrás do input[type=color] transparente */
 }
 
 /* Estilo do input[type="color"] para torná-lo transparente e sobrepor o ícone */
@@ -177,23 +187,29 @@ textarea {
     opacity: 0;
     cursor: pointer;
     z-index: 2;
-    padding: 0 !important; /* Adicione !important para forçar a remoção de qualquer padding nativo */
-    margin: 0 !important; /* Adicione !important para forçar a remoção de qualquer margin nativo */
+    padding: 0 !important;
+    /* Adicione !important para forçar a remoção de qualquer padding nativo */
+    margin: 0 !important;
+    /* Adicione !important para forçar a remoção de qualquer margin nativo */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
     background: none;
-    border: none !important; /* Adicione !important para remover bordas */
+    border: none !important;
+    /* Adicione !important para remover bordas */
 }
 
 /* Garante que o botão nativo seja removido ou reduzido a zero */
 #colorPicker::-webkit-color-swatch-wrapper {
     padding: 0;
 }
+
 #colorPicker::-webkit-color-swatch {
     border: none;
-    border-radius: 50%; /* Se ainda houver uma caixa visível, tenta torná-la um círculo */
-    width: 100%; /* Garante que preencha o pai (color-picker-container) */
+    border-radius: 50%;
+    /* Se ainda houver uma caixa visível, tenta torná-la um círculo */
+    width: 100%;
+    /* Garante que preencha o pai (color-picker-container) */
     height: 100%;
 }
 
@@ -221,10 +237,11 @@ textarea {
     width: 116px;
     height: 42px;
     border-radius: 21px;
-    background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
+    /* usa variáveis para permitir atualização dinâmica via JS */
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-dark) 100%);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     z-index: 0;
-    /* ficar atrás dos textos */
+    /* usa variáveis para permitir atualização dinâmica via JS */
     transition: transform 0.3s ease;
 }
 
@@ -394,7 +411,8 @@ textarea {
     /* centraliza conteúdo verticalmente */
     justify-content: center;
     /* centraliza conteúdo horizontalmente/verticalmente */
-    padding: 9px 12px; /* ALTERADO: 9px em cima/baixo e 12px nas laterais */    
+    padding: 9px 12px;
+    /* ALTERADO: 9px em cima/baixo e 12px nas laterais */
     box-sizing: border-box;
     text-align: center;
     color: #1f2937;

@@ -74,7 +74,7 @@
             </div>
 
             <div class="post-preview" id="preview"></div>
-            </div>
+        </div>
     </div>
 
     <script>
@@ -101,6 +101,29 @@
 
         window.__bgColor = '#48bb78'; // cor inicial
         const colorSelector = document.getElementById('colorSelector');
+
+        // Atualiza variáveis CSS (--accent e --accent-dark) para que o CSS responda
+        function updateAccentColors() {
+            try {
+                document.documentElement.style.setProperty('--accent', window.__bgColor);
+                // usa a função existente darkenHex para gerar uma versão mais escura
+                const darker = darkenHex(window.__bgColor, 0.16);
+                document.documentElement.style.setProperty('--accent-dark', darker);
+
+                // Compatibilidade extra: também aplica inline nos elementos-chave para evitar problemas
+                // de cache/especificidade que impeçam a atualização visual imediata.
+                const slider = document.querySelector('.toggle-slider');
+                if (slider) {
+                    slider.style.background = `linear-gradient(90deg, ${window.__bgColor} 0%, ${darker} 100%)`;
+                }
+                const downloadBtnEl = document.getElementById('downloadBtn');
+                if (downloadBtnEl) {
+                    downloadBtnEl.style.background = `linear-gradient(135deg, ${window.__bgColor} 0%, ${darker} 100%)`;
+                }
+            } catch (err) {
+                console.warn('updateAccentColors: erro ao aplicar variáveis CSS', err);
+            }
+        }
 
         // função para escurecer cor do cabeçalho
         function darkenHex(hex, factor) {
@@ -164,6 +187,8 @@
 
             // 1. Aplica cor inicial
             applyBgToBgDiv();
+            // garante que o toggle e o botão usem a cor inicial
+            updateAccentColors();
             // aplicar cor do título inicial (se já existir)
             applyTituloColor(fatorCorTitulo);
             preview.style.background = 'transparent';
@@ -230,6 +255,8 @@
             circle.classList.add('selected');
 
             // C. Aplica a cor ao preview e aos elementos dependentes
+            // Atualiza variáveis CSS usadas pelo toggle e botão
+            updateAccentColors();
             if (preview) applyBgToBgDiv();
 
             const overlay = document.querySelector('.cabecalho');
@@ -245,6 +272,9 @@
             colorPicker.addEventListener('input', (e) => {
                 const newColor = e.target.value;
                 window.__bgColor = newColor;
+
+                // Atualiza variáveis CSS para refletir nova cor
+                updateAccentColors();
 
                 // Remove a seleção de todos os círculos (a cor veio do conta-gotas)
                 document.querySelectorAll('.color-circle').forEach(c => {
